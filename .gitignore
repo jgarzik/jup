@@ -22,4 +22,5 @@ stamp-h1
 myprog
 
 myprog-config.h*
+*.tar.gz
 
