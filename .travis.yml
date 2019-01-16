@@ -11,7 +11,7 @@ os:
 
 dist: xenial
 
-sudo: false
+sudo: true
 
 addons:
   apt:
@@ -26,6 +26,7 @@ env:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
+  - ./install-univalue.sh
 
 install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install gettext; fi
