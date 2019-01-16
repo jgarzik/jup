@@ -11,6 +11,11 @@ os:
 
 sudo: false
 
+addons:
+  apt:
+    packages:
+      - libunivalue-dev
+
 env:
   global:
     - MAKEJOBS=-j3
