@@ -9,6 +9,8 @@ os:
   - linux
 #  - osx
 
+dist: xenial
+
 sudo: false
 
 addons:
