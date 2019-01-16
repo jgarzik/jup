@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <argp.h>
@@ -51,6 +52,10 @@ static commandInfo commandList[] = {
 
 	{ 2, "str", "str JSON-PATH VALUE",
 	  "Store VALUE at JSON-PATH" },
+	{ 2, "int", "int JSON-PATH VALUE",
+	  "Store integer VALUE at JSON-PATH" },
+	{ 2, "num", "num JSON-PATH VALUE",
+	  "Store floating point VALUE at JSON-PATH" },
 
 	{ 1, "true", "true JSON-PATH",
 	  "Store boolean true at JSON-PATH" },
@@ -394,6 +399,43 @@ static bool processDocument()
 			}
 
 			UniValue jval(val);
+			if (!jdocSet(jpath, jval))
+				return false;
+		}
+
+		else if (cmd == "int") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& valStr = cmdArgs[1];
+
+			errno = 0;
+			unsigned long long l = strtoull(valStr.c_str(),
+							NULL, 10);
+			if (errno != 0) {
+				fprintf(stderr, "integer parse failed: %s\n",
+					valStr.c_str());
+				return false;
+			}
+
+			UniValue jval((uint64_t) l);
+			if (!jdocSet(jpath, jval))
+				return false;
+		}
+
+		else if (cmd == "num") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& valStr = cmdArgs[1];
+
+			errno = 0;
+			double d = strtold(valStr.c_str(), NULL);
+			if (errno != 0) {
+				fprintf(stderr, "number parse failed: %s\n",
+					valStr.c_str());
+				return false;
+			}
+
+			UniValue jval(d);
 			if (!jdocSet(jpath, jval))
 				return false;
 		}
