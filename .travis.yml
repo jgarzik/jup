@@ -13,11 +13,6 @@ dist: xenial
 
 sudo: true
 
-addons:
-  apt:
-    packages:
-      - libunivalue-dev
-
 env:
   global:
     - MAKEJOBS=-j3
