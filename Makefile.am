@@ -1,5 +1,6 @@
 
-bin_PROGRAMS = myprog
+bin_PROGRAMS = jup
 
-myprog_SOURCES = main.cc
+jup_SOURCES = jup.cc
+jup_LDADD = @ARGP_LIBS@ @UNIVALUE_LIBS@
 

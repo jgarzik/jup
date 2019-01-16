@@ -17,11 +17,11 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT(myprog, 0.1git, [Jeff Garzik <jgarzik@pobox.com>])
+AC_INIT(jup, 0.1git, [Jeff Garzik <jgarzik@pobox.com>])
 AC_PREREQ(2.52)
-AC_CONFIG_SRCDIR([main.cc])
+AC_CONFIG_SRCDIR([jup.cc])
 AM_INIT_AUTOMAKE([gnu])
-AC_CONFIG_HEADERS([myprog-config.h])
+AC_CONFIG_HEADERS([jup-config.h])
 
 dnl Make sure anyone changing configure.ac/Makefile.am has a clue
 AM_MAINTAINER_MODE
@@ -44,7 +44,18 @@ dnl Checks for required libraries
 dnl -----------------------------
 dnl AC_CHECK_LIB(gssrpc, gssrpc_svc_register, GSSRPC_LIBS=-lgssrpc, exit 1)
 
-dnl AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-largp)
+AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-largp)
+dnl AC_CHECK_LIB(univalue, getJsonToken, UNIVALUE_LIBS=-lunivalue)
+
+AC_LANG(C++)
+SAVED_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -lunivalue"
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <univalue.h>], 
+    [UniValue dummy])],
+  [UNIVALUE_LIBS="-lunivalue"] [HAVE_UNIVALUE=1], 
+  [AC_MSG_ERROR([libunivalue is not installed.])])
+LDFLAGS=$SAVED_LDFLAGS
 
 dnl -------------------------------------
 dnl Checks for optional library functions
@@ -62,7 +73,8 @@ dnl --------------------------
 dnl AC_SUBST(GSSRPC_LIBS)
 dnl AC_SUBST(DB4_LIBS)
 dnl AC_SUBST(EVENT_LIBS)
-dnl AC_SUBST(ARGP_LIBS)
+AC_SUBST(ARGP_LIBS)
+AC_SUBST(UNIVALUE_LIBS)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

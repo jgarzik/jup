@@ -12,6 +12,7 @@ INSTALL
 config.log
 config.status
 configure
+compile
 depcomp
 install-sh
 missing
@@ -19,8 +20,8 @@ push
 stamp-h1
 
 # app-specific
-myprog
+jup
 
-myprog-config.h*
+jup-config.h*
 *.tar.gz
 
