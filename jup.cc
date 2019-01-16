@@ -3,6 +3,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -41,12 +42,17 @@ public:
 static commandInfo commandList[] = {
 	{ 1, "get", "get JSON-PATH",
 	  "Replace document with subset of JSON input, starting at JSON-PATH" },
+	{ 0, "new", "new",
+	  "Create document with empty object.  stdin ignored.", true },
+	{ 0, "newarray", "newarray",
+	  "Create document with empty array.  stdin ignored.", true },
+	{ 2, "str", "str JSON-PATH VALUE",
+	  "Store VALUE at JSON-PATH" },
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
 static const struct argp argp = { options, parse_opt, args_doc, doc };
 
-static bool readStdin = true;
 static bool minimalJson = false;
 static bool doListCommands = false;
 UniValue jdoc(UniValue::VNULL);
@@ -170,9 +176,11 @@ static bool isDigitStr(const string& s)
 	return true;
 }
 
-static const UniValue& lookupPath(const string& path, deque<string> rem)
+static const UniValue& lookupPath(const string& path, deque<string>& rem,
+				  bool& matched)
 {
 	rem.clear();
+	matched = false;
 
 	deque<string> tokens;
 
@@ -184,8 +192,10 @@ static const UniValue& lookupPath(const string& path, deque<string> rem)
 
 		if (jptr.isObject() && jptr.exists(token)) {
 			// direct path match
-			if (tokens.size() == 1)
+			if (tokens.size() == 1) {
+				matched = true;
 				return jptr[token];
+			}
 
 			if (!jptr[token].isObject() &&
 			    !jptr[token].isArray()) {
@@ -201,8 +211,10 @@ static const UniValue& lookupPath(const string& path, deque<string> rem)
 
 			size_t index = atol(token.c_str());
 			// direct path match
-			if (tokens.size() == 1)
+			if (tokens.size() == 1) {
+				matched = true;
 				return jptr[index];
+			}
 
 			if (!jptr[index].isObject() &&
 			    !jptr[index].isArray()) {
@@ -224,9 +236,10 @@ static const UniValue& lookupPath(const string& path, deque<string> rem)
 const UniValue& objectGet(const string& jpath)
 {
 	deque<string> rem;
+	bool matched;
 
-	const UniValue& val = lookupPath(jpath, rem);
-	if (rem.size() != 0)
+	const UniValue& val = lookupPath(jpath, rem, matched);
+	if (!matched)
 		return NullUniValue;
 
 	return val;
@@ -279,8 +292,65 @@ static bool processDocument()
 		// per-command processing
 
 		if (cmd == "get") {
+			assert(cmdArgs.size() == 1);
 			const UniValue& val = objectGet(cmdArgs[0]);
 			jdoc = val;
+		}
+
+		else if (cmd == "new") {
+			assert(cmdArgs.size() == 0);
+			UniValue tmp(UniValue::VOBJ);
+			jdoc = tmp;
+		}
+
+		else if (cmd == "newarray") {
+			assert(cmdArgs.size() == 0);
+			UniValue tmp(UniValue::VARR);
+			jdoc = tmp;
+		}
+
+		else if (cmd == "str") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& val = cmdArgs[1];
+			deque<string> rem;
+			bool matched;
+
+			UniValue& container =
+				(UniValue&) lookupPath(jpath, rem, matched);
+
+			if (rem.size() > 1) {
+				fprintf(stderr, "Cannot find json path\n");
+				return false;
+			}
+			assert(rem.size() == 1);
+
+			if (container.isObject())
+				container.pushKV(rem.front(), val);
+
+			else if (container.isArray()) {
+				const string& indexStr = rem.front();
+				if (!isDigitStr(indexStr)) {
+					fprintf(stderr,"Invalid array index\n");
+					return false;
+				}
+				int index = atoi(indexStr.c_str());
+				if (index != container.size()) {
+					fprintf(stderr,"Invalid array index\n");
+					return false;
+				}
+
+				container.push_back(val);
+			}
+
+			else {
+				assert(0 && "Unexpected container type");
+			}
+		}
+
+		else {
+			// should never be reached
+			assert(0 && "unhandled command trap");
 		}
 	}
 
@@ -293,6 +363,19 @@ static bool writeOutput()
 	rawBody.append("\n");
 
 	return writeStringFd(STDOUT_FILENO, rawBody);
+}
+
+static bool ignoreStdin()
+{
+	const string& firstCmd = inputTokens.size() ? inputTokens[0] : "";
+
+	if (cmdMap.count(firstCmd) > 0) {
+		const commandInfo& ci = cmdMap[firstCmd];
+		if (ci.ignoreStdin)
+			return true;
+	}
+
+	return false;
 }
 
 int main (int argc, char *argv[])
@@ -312,7 +395,7 @@ int main (int argc, char *argv[])
 		return EXIT_SUCCESS;
 	}
 
-	if ((readStdin && !readInput()) ||
+	if ((!ignoreStdin() && !readInput()) ||
 	    !processDocument() ||
 	    !writeOutput())
 		return EXIT_FAILURE;
