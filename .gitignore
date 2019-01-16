@@ -4,6 +4,8 @@
 autom4te.cache
 
 *.o
+*.log
+*.trs
 
 aclocal.m4
 Makefile
@@ -15,6 +17,7 @@ configure
 compile
 depcomp
 install-sh
+test-driver
 missing
 push
 stamp-h1

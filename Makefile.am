@@ -1,4 +1,10 @@
 
+EXTRA_DIST = \
+	runtests.sh \
+	test/data/example_2.json
+
+TESTS = runtests.sh
+
 bin_PROGRAMS = jup
 
 jup_SOURCES = jup.cc
