@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <argp.h>
 #include <univalue.h>
+#include "utf8.h"
 
 using namespace std;
 
@@ -42,12 +43,26 @@ public:
 static commandInfo commandList[] = {
 	{ 1, "get", "get JSON-PATH",
 	  "Replace document with subset of JSON input, starting at JSON-PATH" },
+
 	{ 0, "new", "new",
 	  "Create document with empty object.  stdin ignored.", true },
 	{ 0, "newarray", "newarray",
 	  "Create document with empty array.  stdin ignored.", true },
+
 	{ 2, "str", "str JSON-PATH VALUE",
 	  "Store VALUE at JSON-PATH" },
+
+	{ 1, "true", "true JSON-PATH",
+	  "Store boolean true at JSON-PATH" },
+	{ 1, "false", "false JSON-PATH",
+	  "Store boolean false at JSON-PATH" },
+	{ 1, "null", "null JSON-PATH",
+	  "Store null at JSON-PATH" },
+
+	{ 1, "array", "array JSON-PATH",
+	  "Store empty array at JSON-PATH" },
+	{ 1, "object", "object JSON-PATH",
+	  "Store empty object at JSON-PATH" },
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
@@ -182,58 +197,63 @@ static const UniValue& lookupPath(const string& path, deque<string>& rem,
 	rem.clear();
 	matched = false;
 
+	if (!is_valid_utf8(path.c_str()))
+		return NullUniValue;
+
 	deque<string> tokens;
 
 	strsplit(path, ".", tokens);
 
-	UniValue& jptr = jdoc;
+	const UniValue* jptr = &jdoc;
 	while (tokens.size() > 0) {
 		const string& token = tokens.front();
 
-		if (jptr.isObject() && jptr.exists(token)) {
+		if (jptr->isObject() && jptr->exists(token)) {
 			// direct path match
 			if (tokens.size() == 1) {
 				matched = true;
-				return jptr[token];
+				return (*jptr)[token];
 			}
 
-			if (!jptr[token].isObject() &&
-			    !jptr[token].isArray()) {
+			if (!(*jptr)[token].isObject() &&
+			    !(*jptr)[token].isArray()) {
 				rem = tokens;
-				return jptr;
+				return *jptr;
 			}
 
-			jptr = jptr[token];
+			jptr = &(*jptr)[token];
 			tokens.pop_front();
 
-		} else if (jptr.isArray() && isDigitStr(token) &&
-			   (atol(token.c_str()) < jptr.size())) {
+		} else if (jptr->isArray() && isDigitStr(token) &&
+			   (atol(token.c_str()) < jptr->size())) {
 
 			size_t index = atol(token.c_str());
 			// direct path match
 			if (tokens.size() == 1) {
 				matched = true;
-				return jptr[index];
+				return (*jptr)[index];
 			}
 
-			if (!jptr[index].isObject() &&
-			    !jptr[index].isArray()) {
+			if (!(*jptr)[index].isObject() &&
+			    !(*jptr)[index].isArray()) {
 				rem = tokens;
-				return jptr;
+				return *jptr;
 			}
 
-			jptr = jptr[index];
+			jptr = &(*jptr)[index];
 			tokens.pop_front();
+		} else if (jptr->isArray() && !isDigitStr(token)) {
+			return NullUniValue;
 		} else {
 			rem = tokens;
-			return jptr;
+			return *jptr;
 		}
 	}
 
-	return jptr;
+	return *jptr;
 }
 
-const UniValue& objectGet(const string& jpath)
+const UniValue& jdocGet(const string& jpath)
 {
 	deque<string> rem;
 	bool matched;
@@ -243,6 +263,59 @@ const UniValue& objectGet(const string& jpath)
 		return NullUniValue;
 
 	return val;
+}
+
+static bool jdocSet(const string& jpath, const UniValue& jval)
+{
+	deque<string> rem;
+	bool matched;
+
+	UniValue& container =
+		(UniValue&) lookupPath(jpath, rem, matched);
+
+	if (container.isNull()) {
+		fprintf(stderr, "Invalid json path\n");
+		return false;
+	}
+	if (matched) {
+		fprintf(stderr, "TODO: overwriting values not yet supported\n");
+		return false;
+	}
+	if (rem.size() > 1) {
+		fprintf(stderr, "Cannot find json path\n");
+		return false;
+	}
+	assert(rem.size() == 1);	// TODO: create intermediate path objs
+
+	if (container.isObject()) {
+		const string& key = rem.front();
+		container.pushKV(key, jval);
+
+	} else if (container.isArray()) {
+		const string& indexStr = rem.front();
+		if (!isDigitStr(indexStr)) {
+			fprintf(stderr,"Invalid array index\n");
+			return false;
+		}
+		int index = atoi(indexStr.c_str());
+
+		assert(index >= container.size());
+
+		// fill in sparse arrays
+		while (index > container.size())
+			container.push_back(NullUniValue);
+
+		assert(index == container.size());
+
+		// add new item
+		container.push_back(jval);
+	}
+
+	else {
+		assert(0 && "Unexpected container type");
+	}
+
+	return true;
 }
 
 static bool readInput()
@@ -293,7 +366,7 @@ static bool processDocument()
 
 		if (cmd == "get") {
 			assert(cmdArgs.size() == 1);
-			const UniValue& val = objectGet(cmdArgs[0]);
+			const UniValue& val = jdocGet(cmdArgs[0]);
 			jdoc = val;
 		}
 
@@ -313,39 +386,34 @@ static bool processDocument()
 			assert(cmdArgs.size() == 2);
 			const string& jpath = cmdArgs[0];
 			const string& val = cmdArgs[1];
-			deque<string> rem;
-			bool matched;
 
-			UniValue& container =
-				(UniValue&) lookupPath(jpath, rem, matched);
-
-			if (rem.size() > 1) {
-				fprintf(stderr, "Cannot find json path\n");
+			if (!is_valid_utf8(val.c_str())) {
+				fprintf(stderr, "string not UTF8: %s\n",
+					val.c_str());
 				return false;
 			}
-			assert(rem.size() == 1);
 
-			if (container.isObject())
-				container.pushKV(rem.front(), val);
+			UniValue jval(val);
+			if (!jdocSet(jpath, jval))
+				return false;
+		}
 
-			else if (container.isArray()) {
-				const string& indexStr = rem.front();
-				if (!isDigitStr(indexStr)) {
-					fprintf(stderr,"Invalid array index\n");
-					return false;
-				}
-				int index = atoi(indexStr.c_str());
-				if (index != container.size()) {
-					fprintf(stderr,"Invalid array index\n");
-					return false;
-				}
+		else if (cmd == "true" || cmd == "false" || cmd == "null") {
+			assert(cmdArgs.size() == 1);
+			UniValue jval;
+			if (cmd == "true")	jval.setBool(true);
+			else if (cmd == "false") jval.setBool(false);
 
-				container.push_back(val);
-			}
+			if (!jdocSet(cmdArgs[0], jval))
+				return false;
+		}
 
-			else {
-				assert(0 && "Unexpected container type");
-			}
+		else if (cmd == "array" || cmd == "object") {
+			assert(cmdArgs.size() == 1);
+			UniValue jval(cmd == "object" ? UniValue::VOBJ : UniValue::VARR);
+
+			if (!jdocSet(cmdArgs[0], jval))
+				return false;
 		}
 
 		else {

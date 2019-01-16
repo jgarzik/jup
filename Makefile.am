@@ -7,6 +7,6 @@ TESTS = runtests.sh
 
 bin_PROGRAMS = jup
 
-jup_SOURCES = jup.cc
+jup_SOURCES = jup.cc utf8.h
 jup_LDADD = @ARGP_LIBS@ @UNIVALUE_LIBS@
 
