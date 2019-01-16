@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <errno.h>
 #include <string.h>
 #include <ctype.h>
@@ -68,6 +71,11 @@ static commandInfo commandList[] = {
 	  "Store empty array at JSON-PATH" },
 	{ 1, "object", "object JSON-PATH",
 	  "Store empty object at JSON-PATH" },
+
+	{ 2, "file.text", "file.text JSON-PATH FILE",
+	  "Store content of FILE at JSON-PATH" },
+	{ 2, "file.json", "file.json JSON-PATH FILE",
+	  "Store content of JSON FILE at JSON-PATH" },
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
@@ -174,6 +182,38 @@ static bool writeStringFd(int fd, const string& rawBody)
 	return true;
 }
 
+static bool readTextFile(const string& filename, string& body)
+{
+	int fd = open(filename.c_str(), O_RDONLY);
+	if (fd < 0) {
+		perror(filename.c_str());
+		return false;
+	}
+
+	bool rc = readStringFd(fd, body);
+	close(fd);
+
+	if (!rc)
+		return false;
+
+	return is_valid_utf8(body.c_str());
+}
+
+static bool readJsonFile(const string& filename, UniValue& jbody)
+{
+	string body;
+	if (!readTextFile(filename, body))
+		return false;
+
+	if (!jbody.read(body)) {
+		fprintf(stderr, "%s: JSON data not valid\n",
+			filename.c_str());
+		return false;
+	}
+
+	return true;
+}
+
 static void strsplit(const std::string& s_in, const std::string& delim,
 		     std::deque<std::string>& v)
 {
@@ -230,7 +270,7 @@ static const UniValue& lookupPath(const string& path, deque<string>& rem,
 			tokens.pop_front();
 
 		} else if (jptr->isArray() && isDigitStr(token) &&
-			   (atol(token.c_str()) < jptr->size())) {
+			   ((unsigned long)atol(token.c_str()) < jptr->size())) {
 
 			size_t index = atol(token.c_str());
 			// direct path match
@@ -302,7 +342,7 @@ static bool jdocSet(const string& jpath, const UniValue& jval)
 			fprintf(stderr,"Invalid array index\n");
 			return false;
 		}
-		int index = atoi(indexStr.c_str());
+		unsigned int index = (unsigned int) atoi(indexStr.c_str());
 
 		assert(index >= container.size());
 
@@ -455,6 +495,31 @@ static bool processDocument()
 			UniValue jval(cmd == "object" ? UniValue::VOBJ : UniValue::VARR);
 
 			if (!jdocSet(cmdArgs[0], jval))
+				return false;
+		}
+
+		else if (cmd == "file.text") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& filename = cmdArgs[1];
+			string body;
+
+			if (!readTextFile(filename, body))
+				return false;
+
+			UniValue jval(body);
+			if (!jdocSet(jpath, jval))
+				return false;
+		}
+
+		else if (cmd == "file.json") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& filename = cmdArgs[1];
+			UniValue jbody;
+
+			if (!readJsonFile(filename, jbody) ||
+			    !jdocSet(jpath, jbody))
 				return false;
 		}
 
