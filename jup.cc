@@ -15,6 +15,7 @@
 #include <ctype.h>
 #include <argp.h>
 #include <univalue.h>
+#include "utilstrencodings.h"
 #include "utf8.h"
 
 using namespace std;
@@ -77,6 +78,10 @@ static commandInfo commandList[] = {
 	  "Store content of FILE at JSON-PATH" },
 	{ 2, "file.json", "file.json JSON-PATH FILE",
 	  "Store content of JSON FILE at JSON-PATH" },
+	{ 2, "file.hex", "file.hex JSON-PATH FILE",
+	  "Store (binary?) hex-encoded content of FILE at JSON-PATH" },
+	{ 2, "file.base64", "file.base64 JSON-PATH FILE",
+	  "Store (binary?) base64-encoded content of FILE at JSON-PATH" },
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
@@ -89,13 +94,9 @@ UniValue jdoc(UniValue::VNULL);
 map<string,commandInfo> cmdMap;
 deque<string> inputTokens;
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
-#endif
-
 static void staticInit()
 {
-	for (unsigned int i = 0; i < ARRAY_SIZE(commandList); i++) {
+	for (unsigned int i = 0; i < ARRAYLEN(commandList); i++) {
 		cmdMap[commandList[i].name] = commandList[i];
 	}
 }
@@ -200,7 +201,7 @@ static bool writeStringFd(int fd, const string& rawBody)
 	return true;
 }
 
-static bool readTextFile(const string& filename, string& body)
+static bool readBinaryFile(const string& filename, string& body)
 {
 	int fd = open(filename.c_str(), O_RDONLY);
 	if (fd < 0) {
@@ -211,6 +212,12 @@ static bool readTextFile(const string& filename, string& body)
 	bool rc = readStringFd(fd, body);
 	close(fd);
 
+	return rc;
+}
+
+static bool readTextFile(const string& filename, string& body)
+{
+	bool rc = readBinaryFile(filename, body);
 	if (!rc)
 		return false;
 
@@ -529,6 +536,26 @@ static bool processDocument()
 
 			if (!readJsonFile(filename, jbody) ||
 			    !jdocSet(jpath, jbody))
+				return false;
+		}
+
+		else if (cmd == "file.hex" || cmd == "file.base64") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& filename = cmdArgs[1];
+			string rawBody;
+
+			if (!readBinaryFile(filename, rawBody))
+				return false;
+
+			string body;
+			if (cmd == "file.hex")
+				body = HexStr(rawBody.begin(), rawBody.end());
+			else
+				body = EncodeBase64(rawBody);
+
+			UniValue jval(body);
+			if (!jdocSet(jpath, jval))
 				return false;
 		}
 
