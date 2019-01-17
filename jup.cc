@@ -33,6 +33,8 @@ static struct argp_option options[] = {
 	{"min", 1001, 0, 0, "Minimize JSON output"},
 	{"list-commands", 1002, 0, 0, "List all supported edit commands"},
 	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable; overrides JUP_INDENT env var"},
+	{"unhex", 1004, 0, 0, "If output is a simple string, perform hex-decode"},
+	{"un64", 1005, 0, 0, "If output is a simple string, perform base64-decode"},
 
 	{ }
 };
@@ -89,6 +91,8 @@ static const struct argp argp = { options, parse_opt, args_doc, doc };
 
 static bool minimalJson = false;
 static bool doListCommands = false;
+static bool optDecode64 = false;
+static bool optDecodeHex = false;
 static int defaultIndent = 2;
 UniValue jdoc(UniValue::VNULL);
 map<string,commandInfo> cmdMap;
@@ -147,6 +151,16 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 			defaultIndent = atoi(arg);
 		break;
 	}
+
+	case 1004:
+		optDecodeHex = true;
+		optDecode64 = false;
+		break;
+
+	case 1005:
+		optDecode64 = true;
+		optDecodeHex = false;
+		break;
 
 	case ARGP_KEY_ARG:
 		inputTokens.push_back(arg);
@@ -570,8 +584,38 @@ static bool processDocument()
 
 static bool writeOutput()
 {
-	if (jdoc.isStr())
-		return writeStringFd(STDOUT_FILENO, jdoc.getValStr());
+	if (jdoc.isStr()) {
+		const string& val = jdoc.getValStr();
+
+		if (optDecodeHex) {
+			vector<unsigned char> buf = ParseHex(val);
+			if (buf.size() != (val.size() / 2)) {
+				fprintf(stderr, "Hex decode failed\n");
+				return false;
+			}
+
+			// todo: remove unneeded buffer copy
+
+			string bufStr(buf.begin(), buf.end());
+			return writeStringFd(STDOUT_FILENO, bufStr);
+		} else if (optDecode64) {
+			bool invalid = false;
+			vector<unsigned char> buf =
+				DecodeBase64(val.c_str(), &invalid);
+			if (invalid) {
+				fprintf(stderr, "Base64 decode failed\n");
+				return false;
+			}
+
+			// todo: remove unneeded buffer copy
+
+			string bufStr(buf.begin(), buf.end());
+			return writeStringFd(STDOUT_FILENO, bufStr);
+
+		} else {
+			return writeStringFd(STDOUT_FILENO, val);
+		}
+	}
 
 	string rawBody = jdoc.write(minimalJson ? 0 : defaultIndent);
 	rawBody.append("\n");
