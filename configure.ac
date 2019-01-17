@@ -17,19 +17,24 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+AC_PREREQ(2.60)
 AC_INIT(jup, 0.0.2, [Jeff Garzik <jgarzik@pobox.com>])
-AC_PREREQ(2.52)
 AC_CONFIG_SRCDIR([jup.cc])
-AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS([jup-config.h])
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIR([build-aux/m4])
 
-dnl Make sure anyone changing configure.ac/Makefile.am has a clue
-AM_MAINTAINER_MODE
+AC_CANONICAL_HOST
+
+AM_INIT_AUTOMAKE([foreign])
+AM_MAINTAINER_MODE([enable])
 
 dnl Checks for programs
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_RANLIB
+dnl Require C++11 compiler (no GNU extensions)
+AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
 
 dnl Checks for header files.
 AC_HEADER_STDC
