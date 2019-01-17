@@ -31,6 +31,7 @@ static const char args_doc[] =
 static struct argp_option options[] = {
 	{"min", 1001, 0, 0, "Minimize JSON output"},
 	{"list-commands", 1002, 0, 0, "List all supported edit commands"},
+	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable; overrides JUP_INDENT env var"},
 
 	{ }
 };
@@ -83,6 +84,7 @@ static const struct argp argp = { options, parse_opt, args_doc, doc };
 
 static bool minimalJson = false;
 static bool doListCommands = false;
+static int defaultIndent = 2;
 UniValue jdoc(UniValue::VNULL);
 map<string,commandInfo> cmdMap;
 deque<string> inputTokens;
@@ -115,7 +117,16 @@ static void listCommands()
 		l.push_back(obj);
 	}
 
-	printf("%s\n", l.write(minimalJson ? 0 : 2).c_str());
+	printf("%s\n", l.write(minimalJson ? 0 : defaultIndent).c_str());
+}
+
+static bool isDigitStr(const string& s)
+{
+	for (unsigned int i = 0; i < s.size(); i++)
+		if (!isdigit(s[i]))
+			return false;
+
+	return true;
 }
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state)
@@ -128,6 +139,13 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 	case 1002:
 		doListCommands = true;
 		break;
+
+	case 1003: {
+		string indentStr(arg);
+		if (isDigitStr(indentStr))
+			defaultIndent = atoi(arg);
+		break;
+	}
 
 	case ARGP_KEY_ARG:
 		inputTokens.push_back(arg);
@@ -225,15 +243,6 @@ static void strsplit(const std::string& s_in, const std::string& delim,
 		v.push_back(p);
 		p = strtok(NULL, delim.c_str());
 	}
-}
-
-static bool isDigitStr(const string& s)
-{
-	for (unsigned int i = 0; i < s.size(); i++)
-		if (!isdigit(s[i]))
-			return false;
-
-	return true;
 }
 
 static const UniValue& lookupPath(const string& path, deque<string>& rem,
@@ -537,7 +546,7 @@ static bool writeOutput()
 	if (jdoc.isStr())
 		return writeStringFd(STDOUT_FILENO, jdoc.getValStr());
 
-	string rawBody = jdoc.write(minimalJson ? 0 : 2);
+	string rawBody = jdoc.write(minimalJson ? 0 : defaultIndent);
 	rawBody.append("\n");
 
 	return writeStringFd(STDOUT_FILENO, rawBody);
@@ -556,9 +565,21 @@ static bool ignoreStdin()
 	return false;
 }
 
+static void envInit()
+{
+	const char *envar;
+
+	if ((envar = getenv("JUP_INDENT")) != nullptr) {
+		string indentStr(envar);
+		if (isDigitStr(indentStr))
+			defaultIndent = atoi(envar);
+	}
+}
+
 int main (int argc, char *argv[])
 {
 	staticInit();
+	envInit();
 
 	// parse command line
 	error_t argp_rc = argp_parse(&argp, argc, argv, 0, NULL, NULL);
