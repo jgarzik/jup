@@ -534,6 +534,9 @@ static bool processDocument()
 
 static bool writeOutput()
 {
+	if (jdoc.isStr())
+		return writeStringFd(STDOUT_FILENO, jdoc.getValStr());
+
 	string rawBody = jdoc.write(minimalJson ? 0 : 2);
 	rawBody.append("\n");
 
