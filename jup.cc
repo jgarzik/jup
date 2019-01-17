@@ -30,11 +30,11 @@ static const char args_doc[] =
 "EDIT-COMMANDS...";
 
 static struct argp_option options[] = {
-	{"min", 1001, 0, 0, "Minimize JSON output"},
-	{"list-commands", 1002, 0, 0, "List all supported edit commands"},
-	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable; overrides JUP_INDENT env var"},
-	{"unhex", 1004, 0, 0, "If output is a simple string, perform hex-decode"},
-	{"un64", 1005, 0, 0, "If output is a simple string, perform base64-decode"},
+	{"min", 1001, 0, 0, "Minimize JSON output."},
+	{"list-commands", 1002, 0, 0, "List all supported edit commands."},
+	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable). Overrides JUP_INDENT env var."},
+	{"unhex", 1004, 0, 0, "If output is a simple string, perform hex-decode."},
+	{"un64", 1005, 0, 0, "If output is a simple string, perform base64-decode."},
 
 	{ }
 };
