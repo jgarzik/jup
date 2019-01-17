@@ -31,7 +31,8 @@ static const char args_doc[] =
 
 static struct argp_option options[] = {
 	{"min", 1001, 0, 0, "Minimize JSON output."},
-	{"list-commands", 1002, 0, 0, "List all supported edit commands."},
+	{"list-commands", 1002, 0, 0, "List all supported edit commands, and their descriptions."},
+	{"list-short", 1006, 0, 0, "Short list of edit command usages."},
 	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable). Overrides JUP_INDENT env var."},
 	{"unhex", 1004, 0, 0, "If output is a simple string, perform hex-decode."},
 	{"un64", 1005, 0, 0, "If output is a simple string, perform base64-decode."},
@@ -91,6 +92,7 @@ static const struct argp argp = { options, parse_opt, args_doc, doc };
 
 static bool minimalJson = false;
 static bool doListCommands = false;
+static bool doListUsages = false;
 static bool optDecode64 = false;
 static bool optDecodeHex = false;
 static int defaultIndent = 2;
@@ -105,9 +107,10 @@ static void staticInit()
 	}
 }
 
-static void listCommands()
+static void listCommands(bool longForm)
 {
 	UniValue l(UniValue::VARR);
+	UniValue shortl(UniValue::VARR);
 
 	for (map<string,commandInfo>::const_iterator it = cmdMap.begin();
 	     it != cmdMap.end(); it++) {
@@ -120,9 +123,12 @@ static void listCommands()
 		obj.pushKV("help", ci.description);
 
 		l.push_back(obj);
+		shortl.push_back(ci.summary);
 	}
 
-	printf("%s\n", l.write(minimalJson ? 0 : defaultIndent).c_str());
+	int wrIndent = minimalJson ? 0 : defaultIndent;
+	string body = longForm ? l.write(wrIndent) : shortl.write(wrIndent);
+	printf("%s\n", body.c_str());
 }
 
 static bool isDigitStr(const string& s)
@@ -143,6 +149,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 
 	case 1002:
 		doListCommands = true;
+		break;
+
+	case 1006:
+		doListUsages = true;
 		break;
 
 	case 1003: {
@@ -660,8 +670,8 @@ int main (int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (doListCommands) {
-		listCommands();
+	if (doListCommands || doListUsages) {
+		listCommands(doListCommands ? true : false);
 		return EXIT_SUCCESS;
 	}
 
