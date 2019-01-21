@@ -23,6 +23,7 @@ AC_CONFIG_SRCDIR([jup.cc])
 AC_CONFIG_HEADERS([jup-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
+AC_CONFIG_SUBDIRS([univalue])
 
 AC_CANONICAL_HOST
 
@@ -50,17 +51,8 @@ dnl -----------------------------
 dnl AC_CHECK_LIB(gssrpc, gssrpc_svc_register, GSSRPC_LIBS=-lgssrpc, exit 1)
 
 AC_CHECK_LIB(argp, argp_parse, ARGP_LIBS=-largp)
-dnl AC_CHECK_LIB(univalue, getJsonToken, UNIVALUE_LIBS=-lunivalue)
 
 AC_LANG(C++)
-SAVED_LDFLAGS=$LDFLAGS
-LDFLAGS="$LDFLAGS -lunivalue"
-AC_LINK_IFELSE(
-  [AC_LANG_PROGRAM([#include <univalue.h>], 
-    [UniValue dummy])],
-  [UNIVALUE_LIBS="-lunivalue"] [HAVE_UNIVALUE=1], 
-  [AC_MSG_ERROR([libunivalue is not installed.])])
-LDFLAGS=$SAVED_LDFLAGS
 
 dnl -------------------------------------
 dnl Checks for optional library functions
@@ -75,6 +67,8 @@ dnl --------------------------
 dnl autoconf output generation
 dnl --------------------------
 
+UNIVALUE_LIBS="-Lunivalue -lunivalue"
+
 dnl AC_SUBST(GSSRPC_LIBS)
 dnl AC_SUBST(DB4_LIBS)
 dnl AC_SUBST(EVENT_LIBS)
@@ -83,3 +77,4 @@ AC_SUBST(UNIVALUE_LIBS)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+

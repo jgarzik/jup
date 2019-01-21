@@ -5,6 +5,8 @@ EXTRA_DIST = \
 
 TESTS = runtests.sh
 
+SUBDIRS = univalue
+
 bin_PROGRAMS = jup
 
 jup_SOURCES = jup.cc utf8.h utilstrencodings.cpp utilstrencodings.h
