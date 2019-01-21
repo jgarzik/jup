@@ -14,7 +14,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <argp.h>
-#include <univalue.h>
+#include "univalue/include/univalue.h"
 #include "utilstrencodings.h"
 #include "utf8.h"
 
@@ -271,11 +271,18 @@ static bool readTextLines(const std::string& filename,
 	char line[2048];
 
 	FILE *f = fopen(filename.c_str(), "r");
-	if (!f)
+	if (!f) {
+		perror(filename.c_str());
 		return false;
+	}
 
 	while (fgets(line, sizeof(line), f) != NULL)
 		lines.push_back(line);
+
+	if (ferror(f)) {
+		perror(filename.c_str());
+		return false;
+	}
 
 	fclose(f);
 
@@ -538,7 +545,7 @@ static bool processDocument()
 
 		if (cmd == "get") {
 			assert(cmdArgs.size() == 1);
-			const UniValue& val = jdocGet(cmdArgs[0]);
+			UniValue val = jdocGet(cmdArgs[0]);
 			jdoc = val;
 		}
 

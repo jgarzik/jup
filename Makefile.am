@@ -10,5 +10,5 @@ SUBDIRS = univalue
 bin_PROGRAMS = jup
 
 jup_SOURCES = jup.cc utf8.h utilstrencodings.cpp utilstrencodings.h
-jup_LDADD = @ARGP_LIBS@ @UNIVALUE_LIBS@
+jup_LDADD = @ARGP_LIBS@ univalue/.libs/libunivalue.a
 

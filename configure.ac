@@ -23,7 +23,7 @@ AC_CONFIG_SRCDIR([jup.cc])
 AC_CONFIG_HEADERS([jup-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
-AC_CONFIG_SUBDIRS([univalue])
+AX_SUBDIRS_CONFIGURE([univalue], [--disable-shared])
 
 AC_CANONICAL_HOST
 
@@ -67,13 +67,10 @@ dnl --------------------------
 dnl autoconf output generation
 dnl --------------------------
 
-UNIVALUE_LIBS="-Lunivalue -lunivalue"
-
 dnl AC_SUBST(GSSRPC_LIBS)
 dnl AC_SUBST(DB4_LIBS)
 dnl AC_SUBST(EVENT_LIBS)
 AC_SUBST(ARGP_LIBS)
-AC_SUBST(UNIVALUE_LIBS)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
