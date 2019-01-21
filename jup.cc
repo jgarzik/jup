@@ -85,6 +85,8 @@ static commandInfo commandList[] = {
 	  "Store (binary?) hex-encoded content of FILE at JSON-PATH" },
 	{ 2, "file.base64", "file.base64 JSON-PATH FILE",
 	  "Store (binary?) base64-encoded content of FILE at JSON-PATH" },
+	{ 2, "file.csv", "file.csv JSON-PATH FILE",
+	  "Decode and store CSV-formatted content of FILE at JSON-PATH" },
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state);
@@ -258,6 +260,91 @@ static bool readJsonFile(const string& filename, UniValue& jbody)
 		fprintf(stderr, "%s: JSON data not valid\n",
 			filename.c_str());
 		return false;
+	}
+
+	return true;
+}
+
+static bool readTextLines(const std::string& filename,
+			  std::vector<std::string>& lines)
+{
+	char line[2048];
+
+	FILE *f = fopen(filename.c_str(), "r");
+	if (!f)
+		return false;
+
+	while (fgets(line, sizeof(line), f) != NULL)
+		lines.push_back(line);
+
+	fclose(f);
+
+	return true;
+}
+
+static vector<string> ParseLineDelim(const string& line, char delim = ',',
+				     bool parseQuotes = true)
+{
+	vector<string> data;
+	string cur;
+	size_t pos = 0;
+	bool quoting = false;
+	bool started = false;
+
+	while (pos < line.size()) {
+		char ch = line[pos++];
+
+		if (quoting) {
+			started = true;
+			if (ch == '"')
+				quoting = false;
+			else
+				cur.append(1, ch);
+		} else {
+			if ((ch == '"') && (parseQuotes)) {
+				quoting = true;
+				if (started)
+					cur.append(1, ch);
+
+			} else if (ch == delim) {
+				data.push_back(cur);
+				cur.clear();
+				started = false;
+			} else if (ch == '\r') {
+				// ignore
+			} else if (ch == '\n') {
+				break;
+			} else
+				cur.append(1, ch);
+		}
+	}
+
+	data.push_back(cur);
+
+	return data;
+}
+
+static bool readDelimFile(const string& filename, UniValue& jbody)
+{
+	if (!jbody.isArray()) {
+		fprintf(stderr, "Input not an array\n");
+		return false;
+	}
+
+	vector<string> lines;
+
+	if (!readTextLines(filename, lines))
+		return false;
+
+	for (const string& line : lines) {
+		vector<string> cols = ParseLineDelim(line);
+		UniValue arr(UniValue::VARR);
+
+		for (const string& col : cols) {
+			arr.push_back(col);
+		}
+
+		jbody.push_back(arr);
 	}
 
 	return true;
@@ -549,6 +636,17 @@ static bool processDocument()
 
 			UniValue jval(body);
 			if (!jdocSet(jpath, jval))
+				return false;
+		}
+
+		else if (cmd == "file.csv") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& filename = cmdArgs[1];
+			UniValue jbody(UniValue::VARR);
+
+			if (!readDelimFile(filename, jbody) ||
+			    !jdocSet(jpath, jbody))
 				return false;
 		}
 
