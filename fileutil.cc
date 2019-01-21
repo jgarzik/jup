@@ -72,3 +72,24 @@ bool readTextFile(const string& filename, string& body)
 	return is_valid_utf8(body.c_str());
 }
 
+bool readTextLines(const std::string& filename, std::vector<std::string>& lines)
+{
+	RFile f;
+
+	if (!f.open(filename, "r")) {
+		perror(filename.c_str());
+		return false;
+	}
+
+	string line;
+	while (f.getline(line))
+		lines.push_back(line);
+
+	if (f.haveError()) {
+		perror(filename.c_str());
+		return false;
+	}
+
+	return true;
+}
+

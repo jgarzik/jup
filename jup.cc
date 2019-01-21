@@ -201,30 +201,6 @@ static bool readJsonFile(const string& filename, UniValue& jbody)
 	return true;
 }
 
-static bool readTextLines(const std::string& filename,
-			  std::vector<std::string>& lines)
-{
-	char line[2048];
-
-	FILE *f = fopen(filename.c_str(), "r");
-	if (!f) {
-		perror(filename.c_str());
-		return false;
-	}
-
-	while (fgets(line, sizeof(line), f) != NULL)
-		lines.push_back(line);
-
-	if (ferror(f)) {
-		perror(filename.c_str());
-		return false;
-	}
-
-	fclose(f);
-
-	return true;
-}
-
 static vector<string> ParseLineDelim(const string& line, char delim = ',',
 				     bool parseQuotes = true)
 {
