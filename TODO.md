@@ -16,4 +16,6 @@ Unfiltered, Unprioritized, Un-triaged wishlist.
 * core univalue
 	* sort keys
 	* delete
+* append to array, possibly at root
+* merge into object, possibly at root
 
