@@ -5,6 +5,7 @@
 
 Unfiltered, Unprioritized, Un-triaged wishlist.
 
+* `set` -- generic set-value command that auto-determines type
 * `del` -- requires univalue update
 * `get` inputs multiple paths, concat results together
 * brackets [] used in json path for quoting special chars
@@ -18,4 +19,5 @@ Unfiltered, Unprioritized, Un-triaged wishlist.
 	* delete
 * append to array, possibly at root
 * merge into object, possibly at root
+* mmap support for file input
 

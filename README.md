@@ -4,15 +4,11 @@ JSON updater -- a command line JSON swiss army knife.
 
 ## Introduction
 
-This is a command line utility that may be used to manipulate
-JSON documents, adding and deleting many levels deep.
+This is a command line filter utility that may be used to manipulate
+JSON documents, merge JSON documents with JSON and non-JSON formats, or
+create new JSON documents.
 
-## Dependencies
-
-### univalue
-
-Either install `libunivalue-dev` on Ubuntu, or download and compile
-the source code from https://github.com/jgarzik/univalue
+It is a swiss army knife to query and manipulate JSON.
 
 ## Installation
 
