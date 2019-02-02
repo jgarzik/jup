@@ -1,0 +1,30 @@
+#!/bin/sh
+
+datadir=$srcdir/test/data
+inf=$datadir/random.txt
+outf1=tmpout1.$$
+outf2=tmpout2.$$
+
+if ! ./jup file.text quiz.barf $inf < $datadir/example_2.json > $outf1
+then
+	echo "File text import failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! ./jup get quiz.barf < $outf1 > $outf2
+then
+	echo "File text import step 2 failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! cmp -s $inf $outf2
+then
+	echo "File text compare failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+rm -f $outf1 $outf2
+exit 0

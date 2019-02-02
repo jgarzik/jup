@@ -1,6 +1,10 @@
 
 # TODO
 
+## Bugs
+
+CSV: Quoted newlines do not work
+
 ## Wishlist
 
 Unfiltered, Unprioritized, Un-triaged wishlist.

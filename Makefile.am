@@ -1,6 +1,16 @@
 
 EXTRA_DIST = \
 	runtests.js \
+	test-file-base64 \
+	test-file-csv \
+	test-file-hex \
+	test-file-text \
+	test-file-json \
+	test/data/random.dat \
+	test/data/random.txt \
+	test/data/test.csv \
+	test/data/file-json-1-out.json \
+	test/data/file-csv-1-out.json \
 	test/data/all-tests.json \
 	test/data/array-1-out.json \
 	test/data/array-1.cmd \
@@ -27,7 +37,12 @@ EXTRA_DIST = \
 	test/data/true-1-out.json \
 	test/data/true-1.cmd
 
-TESTS = runtests.js
+TESTS = runtests.js \
+	test-file-base64 \
+	test-file-csv \
+	test-file-hex \
+	test-file-json \
+	test-file-text
 
 SUBDIRS = univalue
 

@@ -1,0 +1,22 @@
+#!/bin/sh
+
+datadir=$srcdir/test/data
+inf=$datadir/test.csv
+outf1=tmpout1.$$
+
+if ! ./jup file.csv quiz.csv $inf < $datadir/example_2.json > $outf1
+then
+	echo "File csv import failed."
+	rm -f $outf1
+	exit 1
+fi
+
+if ! cmp -s $outf1 $datadir/file-csv-1-out.json
+then
+	echo "File csv compare failed."
+	rm -f $outf1
+	exit 1
+fi
+
+rm -f $outf1
+exit 0

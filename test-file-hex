@@ -1,0 +1,30 @@
+#!/bin/sh
+
+datadir=$srcdir/test/data
+inf=$datadir/random.dat
+outf1=tmpout1.$$
+outf2=tmpout2.$$
+
+if ! ./jup file.hex quiz.barf $inf < $datadir/example_2.json > $outf1
+then
+	echo "File binary import failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! ./jup --unhex get quiz.barf < $outf1 > $outf2
+then
+	echo "File binary extract failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! cmp -s $inf $outf2
+then
+	echo "File binary compare failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+rm -f $outf1 $outf2
+exit 0

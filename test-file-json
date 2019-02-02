@@ -1,0 +1,22 @@
+#!/bin/sh
+
+datadir=$srcdir/test/data
+inf=$datadir/example_2.json
+outf1=tmpout1.$$
+
+if ! ./jup file.json quiz.sport.q2 $inf < $datadir/example_2.json > $outf1
+then
+	echo "File json import failed."
+	rm -f $outf1
+	exit 1
+fi
+
+if ! cmp -s $outf1 $datadir/file-json-1-out.json
+then
+	echo "File json compare failed."
+	rm -f $outf1
+	exit 1
+fi
+
+rm -f $outf1
+exit 0
