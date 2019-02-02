@@ -5,9 +5,69 @@
 		"out": "pretty-out.json"
 	},
 	{
-		"desc": "create empty array",
+		"desc": "create item, empty array",
 		"in": "example_2.json",
 		"out": "array-1-out.json",
 		"cmd": "array-1.cmd"
+	},
+	{
+		"desc": "create item, value=false",
+		"in": "example_2.json",
+		"out": "false-1-out.json",
+		"cmd": "false-1.cmd"
+	},
+	{
+		"desc": "get complex item",
+		"in": "example_2.json",
+		"out": "get-1-out.json",
+		"cmd": "get-1.cmd"
+	},
+	{
+		"desc": "create item, value=int",
+		"in": "example_2.json",
+		"out": "int-1-out.json",
+		"cmd": "int-1.cmd"
+	},
+	{
+		"desc": "new object document",
+		"in": "example_2.json",
+		"out": "new-1-out.json",
+		"cmd": "new-1.cmd"
+	},
+	{
+		"desc": "new array document",
+		"in": "example_2.json",
+		"out": "newarray-1-out.json",
+		"cmd": "newarray-1.cmd"
+	},
+	{
+		"desc": "create item, value=null",
+		"in": "example_2.json",
+		"out": "null-1-out.json",
+		"cmd": "null-1.cmd"
+	},
+	{
+		"desc": "create item, value=num",
+		"in": "example_2.json",
+		"out": "num-1-out.json",
+		"cmd": "num-1.cmd"
+	},
+	{
+		"desc": "create item, empty object",
+		"in": "example_2.json",
+		"out": "object-1-out.json",
+		"cmd": "object-1.cmd"
+	},
+	{
+		"desc": "create item, value=str",
+		"in": "example_2.json",
+		"out": "str-1-out.json",
+		"cmd": "str-1.cmd"
+	},
+	{
+		"desc": "create item, value=true",
+		"in": "example_2.json",
+		"out": "true-1-out.json",
+		"cmd": "true-1.cmd"
 	}
 ]
