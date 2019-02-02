@@ -19,7 +19,7 @@ dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 AC_PREREQ(2.60)
 AC_INIT(jup, 0.0.4, [Jeff Garzik <jgarzik@pobox.com>])
-AC_CONFIG_SRCDIR([jup.cc])
+AC_CONFIG_SRCDIR([src/jup.cc])
 AC_CONFIG_HEADERS([jup-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
@@ -27,7 +27,7 @@ AX_SUBDIRS_CONFIGURE([univalue], [--disable-shared])
 
 AC_CANONICAL_HOST
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([subdir-objects foreign])
 AM_MAINTAINER_MODE([enable])
 
 dnl Checks for programs

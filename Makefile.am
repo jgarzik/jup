@@ -1,5 +1,7 @@
 
 EXTRA_DIST = \
+	doc/RESOURCES.md \
+	doc/TODO.md \
 	test/runtests.js \
 	test/test-file-base64 \
 	test/test-file-csv \
@@ -52,11 +54,11 @@ SUBDIRS = univalue
 bin_PROGRAMS = jup
 
 jup_SOURCES = \
-	jup.cc \
-	fileutil.cc \
-	fileutil.h \
-	utf8.h \
-	utilstrencodings.cpp \
-	utilstrencodings.h
+	src/jup.cc \
+	src/fileutil.cc \
+	src/fileutil.h \
+	src/utf8.h \
+	src/utilstrencodings.cpp \
+	src/utilstrencodings.h
 jup_LDADD = @ARGP_LIBS@ univalue/.libs/libunivalue.a
 
