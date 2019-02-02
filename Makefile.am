@@ -1,9 +1,13 @@
 
 EXTRA_DIST = \
-	runtests.sh \
-	test/data/example_2.json
+	runtests.js \
+	test/data/all-tests.json \
+	test/data/array-1-out.json \
+	test/data/array-1.cmd \
+	test/data/example_2.json \
+	test/data/pretty-out.json
 
-TESTS = runtests.sh
+TESTS = runtests.js
 
 SUBDIRS = univalue
 

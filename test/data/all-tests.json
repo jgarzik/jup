@@ -1,0 +1,13 @@
+[
+	{
+		"desc": "pretty print / no mutations",
+		"in": "example_2.json",
+		"out": "pretty-out.json"
+	},
+	{
+		"desc": "create empty array",
+		"in": "example_2.json",
+		"out": "array-1-out.json",
+		"cmd": "array-1.cmd"
+	}
+]
