@@ -1,0 +1,38 @@
+#!/bin/sh
+
+datadir=$srcdir/test/data
+outf1=tmpout1.$$
+outf2=tmpout2.$$
+expout=$datadir/indent-3-out.json
+
+if ! ./jup --indent=3 < $datadir/example_2.json > $outf1
+then
+	echo "File indent failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+export JUP_INDENT=3
+if ! ./jup < $datadir/example_2.json > $outf2
+then
+	echo "File indent 2 failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! cmp -s $expout $outf1
+then
+	echo "File compare 1 failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+if ! cmp -s $expout $outf2
+then
+	echo "File compare 2 failed."
+	rm -f $outf1 $outf2
+	exit 1
+fi
+
+rm -f $outf1 $outf2
+exit 0

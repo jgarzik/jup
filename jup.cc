@@ -28,7 +28,7 @@ static const char args_doc[] =
 "EDIT-COMMANDS...";
 
 static struct argp_option options[] = {
-	{"min", 1001, 0, 0, "Minimize JSON output."},
+	{"min", 1001, 0, 0, "Minimize JSON output (equivalent to --indent=0)."},
 	{"list-commands", 1002, 0, 0, "List all supported edit commands, and their descriptions."},
 	{"list-short", 1006, 0, 0, "Short list of edit command usages."},
 	{"indent", 1003, "NUM", 0, "Set JSON output indent spacing (0=disable). Overrides JUP_INDENT env var."},

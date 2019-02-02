@@ -4,11 +4,13 @@ EXTRA_DIST = \
 	test-file-base64 \
 	test-file-csv \
 	test-file-hex \
+	test-file-indent \
 	test-file-text \
 	test-file-json \
 	test/data/random.dat \
 	test/data/random.txt \
 	test/data/test.csv \
+	test/data/indent-3-out.json \
 	test/data/file-json-1-out.json \
 	test/data/file-csv-1-out.json \
 	test/data/all-tests.json \
@@ -41,6 +43,7 @@ TESTS = runtests.js \
 	test-file-base64 \
 	test-file-csv \
 	test-file-hex \
+	test-file-indent \
 	test-file-json \
 	test-file-text
 
