@@ -18,7 +18,7 @@ dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 AC_PREREQ(2.60)
-AC_INIT(jup, 0.0.4, [Jeff Garzik <jgarzik@pobox.com>])
+AC_INIT(jup, 0.0.5, [Jeff Garzik <jgarzik@pobox.com>])
 AC_CONFIG_SRCDIR([src/jup.cc])
 AC_CONFIG_HEADERS([jup-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
