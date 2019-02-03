@@ -1,6 +1,6 @@
 # Jup
 
-JSON updater -- a command line JSON swiss army knife.
+JSON update tool -- a command line JSON swiss army knife.
 
 ## Introduction
 
@@ -52,6 +52,7 @@ $ ./jup --list-short
   "null JSON-PATH",
   "num JSON-PATH VALUE",
   "object JSON-PATH",
+  "set JSON-PATH VALUE",
   "str JSON-PATH VALUE",
   "true JSON-PATH"
 ]
@@ -131,6 +132,11 @@ $ ./jup --list-commands
     "command": "object",
     "usage": "object JSON-PATH",
     "help": "Store empty object at JSON-PATH"
+  },
+  {
+    "command": "set",
+    "usage": "set JSON-PATH VALUE",
+    "help": "Store VALUE at JSON-PATH.  Auto-detect value type."
   },
   {
     "command": "str",
