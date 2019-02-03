@@ -96,8 +96,8 @@ static const struct argp argp = { options, parse_opt, args_doc, doc };
 static bool minimalJson = false;
 static bool doListCommands = false;
 static bool doListUsages = false;
-static bool optDecode64 = false;
-static bool optDecodeHex = false;
+enum optDecodeType { DecNone, DecBase64, DecHex };
+static optDecodeType optDecodeMode = DecNone;
 static int defaultIndent = 2;
 UniValue jdoc(UniValue::VNULL);
 map<string,commandInfo> cmdMap;
@@ -166,13 +166,11 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state)
 	}
 
 	case 1004:
-		optDecodeHex = true;
-		optDecode64 = false;
+		optDecodeMode = DecHex;
 		break;
 
 	case 1005:
-		optDecode64 = true;
-		optDecodeHex = false;
+		optDecodeMode = DecBase64;
 		break;
 
 	case ARGP_KEY_ARG:
@@ -659,7 +657,7 @@ static bool writeOutput()
 	if (jdoc.isStr()) {
 		const string& val = jdoc.getValStr();
 
-		if (optDecodeHex) {
+		if (optDecodeMode == DecHex) {
 			vector<unsigned char> buf = ParseHex(val);
 			if (buf.size() != (val.size() / 2)) {
 				fprintf(stderr, "Hex decode failed\n");
@@ -670,7 +668,7 @@ static bool writeOutput()
 
 			string bufStr(buf.begin(), buf.end());
 			return writeStringFd(STDOUT_FILENO, bufStr);
-		} else if (optDecode64) {
+		} else if (optDecodeMode == DecBase64) {
 			bool invalid = false;
 			vector<unsigned char> buf =
 				DecodeBase64(val.c_str(), &invalid);
@@ -685,6 +683,8 @@ static bool writeOutput()
 			return writeStringFd(STDOUT_FILENO, bufStr);
 
 		} else {
+			assert(optDecodeMode == DecNone);
+
 			return writeStringFd(STDOUT_FILENO, val);
 		}
 	}
