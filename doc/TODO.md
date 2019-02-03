@@ -9,7 +9,6 @@ CSV: Quoted newlines do not work
 
 Unfiltered, Unprioritized, Un-triaged wishlist.
 
-* `set` -- generic set-value command that auto-determines type
 * `del` -- requires univalue update
 * `get` inputs multiple paths, concat results together
 * brackets [] used in json path for quoting special chars

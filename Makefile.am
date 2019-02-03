@@ -36,6 +36,8 @@ EXTRA_DIST = \
 	test/data/object-1-out.json \
 	test/data/object-1.cmd \
 	test/data/pretty-out.json \
+	test/data/set-1-out.json \
+	test/data/set-1.cmd \
 	test/data/str-1-out.json \
 	test/data/str-1.cmd \
 	test/data/true-1-out.json \

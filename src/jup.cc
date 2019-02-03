@@ -3,6 +3,7 @@
 #include <vector>
 #include <deque>
 #include <string>
+#include <regex>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,6 +57,8 @@ static commandInfo commandList[] = {
 	{ 0, "newarray", "newarray",
 	  "Create document with empty array.  stdin ignored.", true },
 
+	{ 2, "set", "set JSON-PATH VALUE",
+	  "Store VALUE at JSON-PATH.  Auto-detect value type." },
 	{ 2, "str", "str JSON-PATH VALUE",
 	  "Store VALUE at JSON-PATH" },
 	{ 2, "int", "int JSON-PATH VALUE",
@@ -424,6 +427,36 @@ static bool readInput()
 	return true;
 }
 
+regex rxTrue("^\\s*true\\s*$", regex::ECMAScript | regex::icase);
+regex rxFalse("^\\s*false\\s*$", regex::ECMAScript | regex::icase);
+regex rxNull("^\\s*null\\s*$", regex::ECMAScript | regex::icase);
+regex rxArray("\\s*\\[[^\\[]*\\]\\s*", regex::ECMAScript);
+regex rxObject("\\s*\\{[^\\[]*\\}\\s*", regex::ECMAScript);
+
+static void detectAndSet(const string& s, UniValue& jval)
+{
+	// empty string = string type
+	if (s.size() == 0)
+		jval.setStr("");
+
+	// match fixed string to bool/null/arr/obj
+	else if (regex_match(s, rxTrue))
+		jval.setBool(true);
+	else if (regex_match(s, rxFalse))
+		jval.setBool(false);
+	else if (regex_match(s, rxNull))
+		jval.setNull();
+	else if (regex_match(s, rxArray))
+		jval.setArray();
+	else if (regex_match(s, rxObject))
+		jval.setObject();
+
+	// attempt to validate-and-set as JSON number.
+	// if that fails, assume string value.
+	else if (!jval.setNumStr(s))
+		jval.setStr(s);
+}
+
 static bool processDocument()
 {
 	while (inputTokens.size() > 0) {
@@ -471,6 +504,18 @@ static bool processDocument()
 			assert(cmdArgs.size() == 0);
 			UniValue tmp(UniValue::VARR);
 			jdoc = tmp;
+		}
+
+		else if (cmd == "set") {
+			assert(cmdArgs.size() == 2);
+			const string& jpath = cmdArgs[0];
+			const string& val = cmdArgs[1];
+
+			UniValue jval;
+			detectAndSet(val, jval);
+
+			if (!jdocSet(jpath, jval))
+				return false;
 		}
 
 		else if (cmd == "str") {

@@ -1,0 +1,12 @@
+{
+  "tbool": true,
+  "fbool": false,
+  "vnull": null,
+  "tarr": [
+  ],
+  "tobj": {
+  },
+  "tint": 1234,
+  "tfloat": 12.34,
+  "foo": "bar"
+}

@@ -59,6 +59,12 @@
 		"cmd": "object-1.cmd"
 	},
 	{
+		"desc": "create item, cmd=set, value=magic!",
+		"in": "example_2.json",
+		"out": "set-1-out.json",
+		"cmd": "set-1.cmd"
+	},
+	{
 		"desc": "create item, value=str",
 		"in": "example_2.json",
 		"out": "str-1-out.json",
