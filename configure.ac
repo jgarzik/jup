@@ -38,7 +38,6 @@ dnl Require C++11 compiler (no GNU extensions)
 AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
 
 dnl Checks for header files.
-AC_HEADER_STDC
 dnl AC_CHECK_HEADERS(sys/ioctl.h unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
