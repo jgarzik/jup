@@ -17,8 +17,8 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_PREREQ(2.60)
-AC_INIT(jup, 0.0.5, [Jeff Garzik <jgarzik@pobox.com>])
+AC_PREREQ([2.71])
+AC_INIT([jup],[0.0.5],[Jeff Garzik <jgarzik@pobox.com>])
 AC_CONFIG_SRCDIR([src/jup.cc])
 AC_CONFIG_HEADERS([jup-config.h])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -38,7 +38,6 @@ dnl Require C++11 compiler (no GNU extensions)
 AX_CXX_COMPILE_STDCXX([11], [noext], [mandatory], [nodefault])
 
 dnl Checks for header files.
-AC_HEADER_STDC
 dnl AC_CHECK_HEADERS(sys/ioctl.h unistd.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
